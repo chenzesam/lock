@@ -1,24 +1,18 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useRef, useEffect } from 'react';
 import './App.css';
+import Lock from './lock';
 
 function App() {
+  const container = useRef(null);
+  const lock = useRef(null);
+  useEffect(() => {
+    lock.current = new Lock({
+      container: container.current
+    })
+  })
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div ref={container} className='container'>
+
     </div>
   );
 }

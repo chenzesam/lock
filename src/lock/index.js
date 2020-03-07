@@ -2,12 +2,15 @@ class Lock {
   constructor({
     container = null,
     keyborad = [3, 3],
-    radius = 40
+    radius = 40,
+    callback = result => {}
   } = {}) {
     this._container = container;
     this._keyborad = keyborad;
     this._radius = radius;
+    this._callback = callback;
     this._mousemove = this._mousemove.bind(this);
+    this._numberAndCircleCenter = {};
     this._result = [];
     this._init();
   }
@@ -31,10 +34,14 @@ class Lock {
     const height = this._canvas.height;
     const rowOffset = width / (rows + 1);
     const colOffset = height / (cols + 1);
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        this._ctx.moveTo(rowOffset * (row + 1) + this._radius, colOffset * (col + 1));
-        this._ctx.arc(rowOffset * (row + 1), colOffset * (col + 1), this._radius, 0, Math.PI * 2);
+    this._numberAndCircleCenter = [];
+    for (let col = 0; col < cols; col++) {
+      for (let row = rows; row > 0; row--) {
+        const circleX = rowOffset * row;
+        const circleY = colOffset * (col + 1);
+        this._numberAndCircleCenter[`${circleX}${circleY}`] = (6 + row) - (col * 3);
+        this._ctx.moveTo(circleX + this._radius, circleY);
+        this._ctx.arc(circleX, circleY, this._radius, 0, Math.PI * 2);
       }
     }
     this._ctx.stroke();
@@ -47,18 +54,19 @@ class Lock {
     const rowOffset = width / (rows + 1);
     const colOffset = height / (cols + 1);
 
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
+    for (let col = 0; col < cols; col++) {
+      for (let row = 0; row < rows; row++) {
         const circleX = rowOffset * (row + 1);
         const circleY = colOffset * (col + 1);
         const isInCircle = Math.sqrt(Math.pow(clientX - circleX, 2) + Math.pow(clientY - circleY, 2)) - this._radius < 0;
-        if (isInCircle) {
+        if (isInCircle && !this._result.includes(this._numberAndCircleCenter[`${circleX}${circleY}`])) {
+          this._result.push(this._numberAndCircleCenter[`${circleX}${circleY}`]);
           this._ctx.save();
           this._ctx.beginPath();
           this._ctx.clearRect(circleX - this._radius, circleY - this._radius, this._radius * 2, this._radius * 2);
           this._ctx.strokeStyle = 'red';
-          this._ctx.moveTo(rowOffset * (row + 1) + this._radius, colOffset * (col + 1));
-          this._ctx.arc(rowOffset * (row + 1), colOffset * (col + 1), this._radius, 0, Math.PI * 2);
+          this._ctx.moveTo(circleX + this._radius, circleY);
+          this._ctx.arc(circleX, circleY, this._radius, 0, Math.PI * 2);
           this._ctx.stroke();
           this._ctx.restore();
         }
@@ -79,7 +87,10 @@ class Lock {
       this._isMouseDown = false;
       this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
       this._drawCircle();
+      this._callback(this._result);
+      this._result = [];
     })
+
   }
   _mousemove(e) {
     const { clientX, clientY } = e;

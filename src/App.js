@@ -7,7 +7,8 @@ function App() {
   const lock = useRef(null);
   useEffect(() => {
     lock.current = new Lock({
-      container: container.current
+      container: container.current,
+      callback: result => console.log(result)
     })
   })
   return (

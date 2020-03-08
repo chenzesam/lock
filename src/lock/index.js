@@ -39,7 +39,7 @@ class Lock {
       for (let row = rows; row > 0; row--) {
         const circleX = rowOffset * row;
         const circleY = colOffset * (col + 1);
-        this._numberAndCircleCenter[`${circleX}${circleY}`] = (6 + row) - (col * 3);
+        this._numberAndCircleCenter[`${circleX}${circleY}`] = (6 + row) - (col * 3) - 1;
         this._ctx.save();
         this._ctx.beginPath();
         this._ctx.moveTo(circleX + this._radius, circleY);
@@ -66,11 +66,17 @@ class Lock {
           this._result.push(this._numberAndCircleCenter[`${circleX}${circleY}`]);
           this._ctx.save();
           this._ctx.beginPath();
-          this._ctx.clearRect(circleX - this._radius, circleY - this._radius, this._radius * 2, this._radius * 2);
-          this._ctx.strokeStyle = 'red';
-          this._ctx.moveTo(circleX + this._radius, circleY);
-          this._ctx.arc(circleX, circleY, this._radius, 0, Math.PI * 2);
-          this._ctx.stroke();
+          this._ctx.moveTo(circleX + this._radius / 2, circleY);
+          const radialGradient = this._ctx.createRadialGradient(
+            circleX, circleY, 0,
+            circleX, circleY, this._radius / 2,
+          );
+          radialGradient.addColorStop(0, '#000');
+          radialGradient.addColorStop(0.5, '#fff');
+          radialGradient.addColorStop(1, '#000');
+          this._ctx.fillStyle = radialGradient;
+          this._ctx.arc(circleX, circleY, this._radius / 2, 0, Math.PI * 2);
+          this._ctx.fill();
           this._ctx.restore();
         }
       }

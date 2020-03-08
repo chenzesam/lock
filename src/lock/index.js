@@ -6,7 +6,7 @@ class Lock {
     callback = result => {}
   } = {}) {
     this._container = container;
-    this._keyborad = keyborad;
+    this._keyboard = keyborad;
     this._radius = radius;
     this._callback = callback;
     this._mousemove = this._mousemove.bind(this);
@@ -29,7 +29,7 @@ class Lock {
   }
 
   _drawCircle() {
-    const [rows, cols] = this._keyborad;
+    const [rows, cols] = this._keyboard;
     const width = this._canvas.width;
     const height = this._canvas.height;
     const rowOffset = width / (rows + 1);
@@ -40,15 +40,18 @@ class Lock {
         const circleX = rowOffset * row;
         const circleY = colOffset * (col + 1);
         this._numberAndCircleCenter[`${circleX}${circleY}`] = (6 + row) - (col * 3);
+        this._ctx.save();
+        this._ctx.beginPath();
         this._ctx.moveTo(circleX + this._radius, circleY);
         this._ctx.arc(circleX, circleY, this._radius, 0, Math.PI * 2);
+        this._ctx.stroke();
+        this._ctx.restore();
       }
     }
-    this._ctx.stroke();
   }
 
   _highlightCircle(clientX, clientY) {
-    const [rows, cols] = this._keyborad;
+    const [rows, cols] = this._keyboard;
     const width = this._canvas.width;
     const height = this._canvas.height;
     const rowOffset = width / (rows + 1);
@@ -77,7 +80,7 @@ class Lock {
   _bindEvent() {
     this._canvas.addEventListener('mousedown', e => {
       const { clientX, clientY } = e;
-      this._highlightCircle(clientX, clientY)
+      this._highlightCircle(clientX, clientY);
       this._isMouseDown = true;
       this._canvas.addEventListener('mousemove', this._mousemove);
     })
@@ -91,6 +94,16 @@ class Lock {
       this._result = [];
     })
 
+    this._canvas.addEventListener('mouseleave', e => {
+      if (this._isMouseDown) {
+        this._canvas.removeEventListener('mousemove', this._mousemove);
+        this._isMouseDown = false;
+        this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+        this._drawCircle();
+        this._callback(this._result);
+        this._result = [];
+      }
+    })
   }
   _mousemove(e) {
     const { clientX, clientY } = e;

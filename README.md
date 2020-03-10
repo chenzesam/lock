@@ -20,6 +20,8 @@
 
 - [ ] 添加 error, success, loading 方法, 支持外部调用;
 
+- [ ] mouse 事件改为 touch 事件;
+
 ## Doc
 
 ```js

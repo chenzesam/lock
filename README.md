@@ -20,16 +20,29 @@
 
 - [ ] 添加 error, success, loading 方法, 支持外部调用;
 
-- [ ] mouse 事件改为 touch 事件;
+- [x] mouse 事件改为 touch 事件;
 
 ## Doc
 
-```js
+```ts
 import Lock from '@czs/lock';
-new Lock({
+const ILockParams = {
+  container: HTMLElement;
+  callback: Promise | (result) => void;
+}
+const lock = new Lock({
   container: document.querySelector('dom'),
   callback: result => {}
-})
+}: ILockParams);
+
+// show loading
+lock.loading(text: string);
+
+// show error
+lock.error();
+
+// show success(just close loading)
+lock.success();
 ```
 
 ## Example

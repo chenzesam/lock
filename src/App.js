@@ -10,11 +10,27 @@ function App() {
   useEffect(() => {
     lock.current = new Lock({
       container: container.current,
-      callback: result => {
-        if (result.toString() === lockPassword.toString()) {
-          setIsLock(false);
-        }
-      }
+      // callback: result => {
+      //   lock.current.loading('加载中, 请稍后~');
+      //   setTimeout(() => {
+      //     if (result.toString() === lockPassword.toString()) {
+      //       setIsLock(false);
+      //       lock.current.success();
+      //     } else {
+      //       lock.current.error();
+      //     }
+      //   }, 1000)
+      // },
+      callback: result => new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (result.toString() === lockPassword.toString()) {
+            setIsLock(false);
+            resolve();
+          } else {
+            reject();
+          }
+        }, 1000);
+      })
     })
   }, [])
   return (

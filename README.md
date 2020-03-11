@@ -16,9 +16,9 @@
 
 - [x] 支持异步(promise) 检测;
 
-- [ ] 代码结构优化(分离功能);
+- [x] 代码结构优化(分离功能);
 
-- [ ] 添加 error, success, loading 方法, 支持外部调用;
+- [x] 添加 error, success, loading 方法, 支持外部调用;
 
 - [x] mouse 事件改为 touch 事件;
 
@@ -29,10 +29,12 @@ import Lock from '@czs/lock';
 const ILockParams = {
   container: HTMLElement;
   callback: Promise | (result) => void;
+  keyborad: [number, number]
 }
 const lock = new Lock({
   container: document.querySelector('dom'),
-  callback: result => {}
+  callback: result => {},
+  keyborad: [3, 3]
 }: ILockParams);
 
 // show loading

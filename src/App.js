@@ -10,6 +10,7 @@ function App() {
   useEffect(() => {
     lock.current = new Lock({
       container: container.current,
+      keyborad: [4, 5],
       // callback: result => {
       //   lock.current.loading('加载中, 请稍后~');
       //   setTimeout(() => {
@@ -36,7 +37,7 @@ function App() {
   return (
     <>
       <div ref={container} className='container' />
-      <div>{isLock ? 'lock' : 'unlock' }</div>
+      <div style={{textAlign: 'center'}}>{isLock ? 'lock' : 'unlock' }</div>
     </>
   );
 }

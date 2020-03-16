@@ -1,39 +1,34 @@
 {
   "name": "lock",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.0.1",
+  "description": "canvas-based mobile gesture unlock library",
+  "main": "dist/index.common.js",
+  "browser": "dist/index.browser.js",
+  "module": "dist/index.esm.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prebuild": "rimraf dist && rimraf example/index.js && rimraf example/index.js.map",
+    "build": "rimraf dist && cross-env NODE_ENV=production rollup -c ./configs/rollup.pro.js",
+    "start": "cross-env NODE_ENV=development rollup --watch -c ./configs/rollup.dev.js"
+  },
   "keywords": [
     "canvas",
     "mobile",
+    "unlock",
     "gesture"
   ],
-  "dependencies": {
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.3.2",
-    "@testing-library/user-event": "^7.1.2",
-    "react": "^16.13.0",
-    "react-dom": "^16.13.0",
-    "react-scripts": "3.4.0"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "author": "chenzesam",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^11.0.2",
+    "@rollup/plugin-html": "^0.1.1",
+    "@rollup/plugin-node-resolve": "^7.1.1",
+    "cross-env": "^7.0.2",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.0.4",
+    "rollup-plugin-livereload": "^1.0.4",
+    "rollup-plugin-serve": "^1.0.1",
+    "rollup-plugin-sizes": "^1.0.1",
+    "rollup-plugin-terser": "^5.3.0"
   }
 }

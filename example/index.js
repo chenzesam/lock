@@ -22,6 +22,9 @@
       // {[key: string]: number} 坐标和数字键盘的映射表
       this._numberMap = {};
 
+      // record body overflow
+      this._bodyOldOverflow = '';
+
       // string[], 结果集
       this._resultCoordinates = [];
       this._touchmove = this._touchmove.bind(this);
@@ -207,6 +210,10 @@
 
     _bindEvent() {
       this._interactionCanvas.addEventListener('touchstart', e => {
+        // make it impossible to scroll while moving
+        this._bodyOldOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
         this._resultCoordinates = [];
         const { clientX, clientY } = e.touches[0];
         if (this._errorTimer) {
@@ -218,6 +225,7 @@
       });
 
       this._interactionCanvas.addEventListener('touchend', () => {
+        document.body.style.overflow = this._bodyOldOverflow;
         this._isTouchstart = false;
         if (this._resultCoordinates.length > 0) {
           this._feedback();

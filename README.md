@@ -20,9 +20,11 @@
 
 - [ ] feat: 美化设计;
 
+- [ ] feat: onChange event;
+
 - [x] fix: touch 事件的 clientX 和 clientY 转为相对于容器的坐标;
 
-- [ ] fix: 父容器能滚动的情况下会导致坐标计算不准确;
+- [x] fix: 父容器能滚动的情况下会导致坐标计算不准确;
 
 ## Doc
 

@@ -18,9 +18,11 @@
 
 - [x] feat: mouse 事件改为 touch 事件;
 
-- [ ] feat: 美化设计;
+- [ ] feat: 拆分出多一层 canvas 作为 checking 交互展示;
 
-- [ ] feat: onChange event;
+- [ ] feat: typescriptify;
+
+- [x] feat: onChange event;
 
 - [x] fix: touch 事件的 clientX 和 clientY 转为相对于容器的坐标;
 
@@ -32,12 +34,14 @@
 import Lock from '@czs/lock';
 const ILockParams = {
   container: HTMLElement;
-  callback: Promise | (result) => void;
+  onResult: Promise | (result: number[]) => void;
+  onChange: (result: number[]) => {},
   keyboard: [number, number]
 }
 const lock = new Lock({
   container: document.querySelector('dom'),
-  callback: result => {},
+  onResult: result => {},
+  onChange: result => {},
   keyboard: [3, 3]
 }: ILockParams);
 

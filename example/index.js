@@ -10,14 +10,16 @@
     constructor({
       container = null,
       keyboard = [3, 3],
-      callback = result => {},
       errorDuration = 2000,
+      onResult = null,
+      onChange = null
     } = {}) {
       this._container = container;
       this._errorDuration = errorDuration;
       this._errorTimer = null;
       this._keyboard = keyboard;
-      this._callback = callback;
+      this._onResult = onResult;
+      this._onChange = onChange;
 
       // {[key: string]: number} 坐标和数字键盘的映射表
       this._numberMap = {};
@@ -128,6 +130,14 @@
           const isInCircle = Math.sqrt(Math.pow(relativeX - circleX, 2) + Math.pow(relativeY - circleY, 2)) - this._radius < 0;
           if (isInCircle && !this._resultCoordinates.includes(`${circleX}_${circleY}`)) {
             this._resultCoordinates.push(`${circleX}_${circleY}`);
+
+            if (this._onChange) {
+              const result = this._resultCoordinates.map(coordinate => {
+                const [x, y] = coordinate.split('_');
+                return this._numberMap[`${x}_${y}`];
+              });
+              this._onChange(result);
+            }
           }
         }
       }
@@ -196,7 +206,7 @@
       this._drawInteractionNotLastLine();
 
       const self = this;
-      const callback = this._callback(result);
+      const callback = this._onResult && this._onResult(result);
 
       if (Object.prototype.toString.call(callback) === '[object Promise]') {
         self.loading();

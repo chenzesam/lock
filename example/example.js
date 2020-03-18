@@ -1,7 +1,7 @@
 const containers = document.querySelectorAll('.container');
 const lock = new Lock({
   container: containers[0],
-  callback: result => {
+  onResult: result => {
     lock.loading();
     setTimeout(() => {
       if (result.join('') === '123') {
@@ -11,12 +11,15 @@ const lock = new Lock({
       }
     }, 1000)
   },
+  onChange: result => {
+    console.log(result)
+  },
   keyboard: [4, 4]
 });
 
 const lock2 = new Lock({
   container: containers[1],
-  callback: result => new Promise((resolve, reject) => {
+  onResult: result => new Promise((resolve, reject) => {
     setTimeout(() => {
       if (result.join('') === '123') {
         resolve()

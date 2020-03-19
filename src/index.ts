@@ -1,37 +1,56 @@
+interface Config {
+  container: HTMLElement;
+  keyboard: [number, number];
+  errorDuration: number;
+  onResult: (result: number[]) => void | null;
+  onChange: (result: number[]) => void | null;
+}
+
 class Lock {
-  constructor({
-    container = null,
-    keyboard = [3, 3],
-    errorDuration = 2000,
-    onResult = null,
-    onChange = null
-  } = {}) {
-    this._container = container;
-    this._errorDuration = errorDuration;
+  private _container: HTMLElement;
+  private _errorDuration: number;
+  private _errorTimer: NodeJS.Timeout | null;
+  private _keyboard: [number, number];
+  private _config: Config;
+  private _onResult: (result: number[]) => void | null | Promise<void>;
+  private _onChange: (result: number[]) => void | null;
+
+  // result collection
+  private _resultCoordinates: string[] = [];
+  private _numberMap: {
+    [key: string]: number;
+  } = {};
+
+  // record body overflow style
+  private _bodyOldOverflow = '';
+  private _width = 0;
+  private _height = 0;
+  private _radius = 0;
+  private _bgCanvas: HTMLCanvasElement;
+  private _interactionCanvas: HTMLCanvasElement;
+  private _bgCtx: CanvasRenderingContext2D;
+  private _interactionCtx: CanvasRenderingContext2D;
+
+  constructor(config: Config) {
+    this._config = Object.assign({}, {
+      keyboard: [3, 3],
+      errorDuration: 2000,
+    }, config);
+
+
+    this._container = this._config.container;
+    this._errorDuration = this._config.errorDuration;
     this._errorTimer = null;
-    this._keyboard = keyboard;
-    this._onResult = onResult;
-    this._onChange = onChange;
+    this._keyboard = this._config.keyboard;
+    this._onResult = this._config.onResult;
+    this._onChange = this._config.onChange;
 
-    // {[key: string]: number} 坐标和数字键盘的映射表
-    this._numberMap = {};
-
-    // record body overflow
-    this._bodyOldOverflow = '';
-
-    // string[], 结果集
-    this._resultCoordinates = [];
     this._touchmove = this._touchmove.bind(this);
 
-    this._init();
-  }
-
-  _init() {
+    // init
     this._container.style.position = 'relative';
-
     const bgCanvas = document.createElement('canvas');
     const interactionCanvas = document.createElement('canvas');
-
     this._width = this._container.getBoundingClientRect().width;
     this._height = this._container.getBoundingClientRect().height;
     this._radius = (Math.min(this._width, this._height) / Math.max(...this._keyboard)) / 3;
@@ -40,8 +59,8 @@ class Lock {
     bgCanvas.style.position = 'absolute';
     interactionCanvas.style.position = 'absolute';
 
-    this._bgCtx = bgCanvas.getContext('2d');
-    this._interactionCtx = interactionCanvas.getContext('2d');
+    this._bgCtx = bgCanvas.getContext('2d') as CanvasRenderingContext2D;
+    this._interactionCtx = interactionCanvas.getContext('2d') as CanvasRenderingContext2D;
 
     this._bgCanvas = bgCanvas;
     this._interactionCanvas = interactionCanvas;
@@ -52,13 +71,10 @@ class Lock {
     this._drawBg();
     this._bindEvent();
   }
-
-  _drawBg() {
+  _drawBg(): void {
     const [rows, cols] = this._keyboard;
-    const width = this._width;
-    const height = this._height;
-    const rowOffset = width / (rows + 1);
-    const colOffset = height / (cols + 1);
+    const rowOffset = this._width / (rows + 1);
+    const colOffset = this._height / (cols + 1);
     for (let col = 0; col < cols; col++) {
       for (let row = rows; row > 0; row--) {
         const circleX = rowOffset * row;
@@ -76,7 +92,10 @@ class Lock {
   }
 
   // calculate the coordinate of the hand relative to then container
-  _calculateRelativeCoordinate(clientX, clientY) {
+  _calculateRelativeCoordinate(clientX: number, clientY: number): {
+    relativeX: number;
+    relativeY: number;
+  } {
     let relativeX = 0;
     let relativeY = 0;
 
@@ -91,11 +110,11 @@ class Lock {
     }
   }
 
-  _clearInteraction() {
+  _clearInteraction(): void {
     this._interactionCtx.clearRect(0, 0, this._width, this._height);
   }
 
-  _drawInteraction(clientX, clientY, color = 'black') {
+  _drawInteraction(clientX: number, clientY: number, color = 'black'): void {
 
     const {
       relativeX, relativeY
@@ -107,7 +126,7 @@ class Lock {
     this._drawInteractionLastLine(relativeX, relativeY);
   }
 
-  _calculateResult(relativeX, relativeY) {
+  _calculateResult(relativeX: number, relativeY: number): void {
     const [rows, cols] = this._keyboard;
     const width = this._width;
     const height = this._height;
@@ -135,51 +154,51 @@ class Lock {
     }
   }
 
-  _drawInteractionNotLastLine(color = 'black') {
+  _drawInteractionNotLastLine(color = 'black'): void {
     this._clearInteraction();
     this._drawInteractionCircle(color);
     this._drawInteractionConnectingLine(color);
   }
 
-  _drawInteractionCircle(fillStyle = 'black') {
+  _drawInteractionCircle(fillStyle = 'black'): void {
     this._resultCoordinates.forEach(coordinate => {
       const [pointX, pointY] = coordinate.split('_');
       this._interactionCtx.save();
       this._interactionCtx.beginPath();
-      this._interactionCtx.moveTo(pointX + this._radius / 2, pointY);
+      this._interactionCtx.moveTo(+pointX + this._radius / 2, +pointY);
       this._interactionCtx.fillStyle = fillStyle;
-      this._interactionCtx.arc(pointX, pointY, this._radius / 3, 0, Math.PI * 2);
+      this._interactionCtx.arc(+pointX, +pointY, this._radius / 3, 0, Math.PI * 2);
       this._interactionCtx.fill();
       this._interactionCtx.restore();
     });
   }
 
-  _drawInteractionConnectingLine(strokeStyle = 'black') {
+  _drawInteractionConnectingLine(strokeStyle = 'black'): void {
     if (this._resultCoordinates.length === 0) {
       return
     }
     const [pointX, pointY] = this._resultCoordinates[0].split('_');
     this._interactionCtx.save();
     this._interactionCtx.beginPath();
-    this._interactionCtx.moveTo(pointX, pointY);
+    this._interactionCtx.moveTo(+pointX, +pointY);
     this._resultCoordinates.forEach((coordinate, index) => {
       if (index === 0) {
         return;
       }
       const [pointX, pointY] = coordinate.split('_');
-      this._interactionCtx.lineTo(pointX, pointY);
+      this._interactionCtx.lineTo(+pointX, +pointY);
     });
     this._interactionCtx.strokeStyle = strokeStyle;
     this._interactionCtx.stroke();
     this._interactionCtx.restore();
   }
 
-  _drawInteractionLastLine(relativeX, relativeY) {
+  _drawInteractionLastLine(relativeX: number, relativeY: number): void {
     if (this._resultCoordinates.length > 0) {
       const [lastPointX, lastPointY] = this._resultCoordinates[this._resultCoordinates.length - 1].split('_');
       this._interactionCtx.save();
       this._interactionCtx.beginPath();
-      this._interactionCtx.moveTo(lastPointX, lastPointY);
+      this._interactionCtx.moveTo(+lastPointX, +lastPointY);
       this._interactionCtx.lineTo(relativeX, relativeY);
       this._interactionCtx.strokeStyle = 'black';
       this._interactionCtx.stroke();
@@ -187,7 +206,7 @@ class Lock {
     }
   }
 
-  _feedback() {
+  _feedback(): void {
 
     const result = this._resultCoordinates.map(coordinate => {
       const [x, y] = coordinate.split('_');
@@ -197,20 +216,17 @@ class Lock {
     this._interactionCanvas.removeEventListener('touchmove', this._touchmove);
     this._drawInteractionNotLastLine();
 
-    const self = this;
-    const callback = this._onResult && this._onResult(result);
+    const callback = this._onResult && this._onResult(result) as Promise<void>;
 
+    const doSuccess = (): void => this.success();
+    const doError = (): void => this.error();
     if (Object.prototype.toString.call(callback) === '[object Promise]') {
-      self.loading();
-      callback.then(() => {
-        self.success();
-      }).catch(() => {
-        self.error();
-      })
+      this.loading();
+      callback.then(doSuccess).catch(doError)
     }
   }
 
-  _bindEvent() {
+  _bindEvent(): void {
     this._interactionCanvas.addEventListener('touchstart', e => {
       // make it impossible to scroll while moving
       this._bodyOldOverflow = document.body.style.overflow;
@@ -222,13 +238,11 @@ class Lock {
         clearTimeout(this._errorTimer);
       }
       this._drawInteraction(clientX, clientY);
-      this._isTouchstart = true;
       this._interactionCanvas.addEventListener('touchmove', this._touchmove);
     })
 
     this._interactionCanvas.addEventListener('touchend', () => {
       document.body.style.overflow = this._bodyOldOverflow;
-      this._isTouchstart = false;
       if (this._resultCoordinates.length > 0) {
         this._feedback();
       }
@@ -236,12 +250,12 @@ class Lock {
 
   }
 
-  _touchmove(e) {
+  _touchmove(e: TouchEvent): void{
     const { clientX, clientY } = e.touches[0];
     this._drawInteraction(clientX, clientY);
   }
 
-  loading(text = 'checking...') {
+  public loading(text = 'checking...'): void {
     this._interactionCtx.save();
     this._interactionCtx.textAlign = 'center';
     this._interactionCtx.font = '48px serif';
@@ -252,14 +266,14 @@ class Lock {
     this._interactionCtx.restore()
   }
 
-  error() {
+  public error(): void {
     this._drawInteractionNotLastLine('red');
     this._errorTimer = setTimeout(() => {
       this._clearInteraction();
     }, this._errorDuration);
   }
 
-  success() {
+  public success(): void {
     this._resultCoordinates = [];
     this._clearInteraction();
   }

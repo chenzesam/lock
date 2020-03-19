@@ -20,7 +20,7 @@
 
 - [ ] feat: 拆分出多一层 canvas 作为 checking 交互展示;
 
-- [ ] feat: typescriptify;
+- [x] feat: typescriptify;
 
 - [x] feat: onChange event;
 

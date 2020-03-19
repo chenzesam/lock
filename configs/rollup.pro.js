@@ -1,6 +1,8 @@
 import baseConfig from './rollup.base';
 import sizes from 'rollup-plugin-sizes';
 import { terser } from 'rollup-plugin-terser';
+import { eslint } from 'rollup-plugin-eslint';
+import ts from "rollup-plugin-typescript2";
 import { browser, main, module as packageModule } from '../package.json';
 
 const output = [];
@@ -35,7 +37,9 @@ export default {
   output,
   plugins: [
     ...baseConfig.plugins,
+    eslint(),
+    ts(),
+    terser(),
     sizes(),
-    terser()
   ]
 };

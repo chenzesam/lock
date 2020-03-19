@@ -1,6 +1,7 @@
 import baseConfig from './rollup.base';
 import serve from 'rollup-plugin-serve';
-import html from '@rollup/plugin-html';
+import { eslint } from 'rollup-plugin-eslint';
+import ts from "rollup-plugin-typescript2";
 import livereload from 'rollup-plugin-livereload'
 
 export default {
@@ -13,7 +14,8 @@ export default {
   },
   plugins: [
     ...baseConfig.plugins,
-    // html(),
+    eslint(),
+    ts(),
     serve({
       open: true,
       port: 8008,

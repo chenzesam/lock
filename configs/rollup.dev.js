@@ -1,8 +1,8 @@
-import baseConfig from './rollup.base';
 import serve from 'rollup-plugin-serve';
 import { eslint } from 'rollup-plugin-eslint';
-import ts from "rollup-plugin-typescript2";
-import livereload from 'rollup-plugin-livereload'
+import ts from 'rollup-plugin-typescript2';
+import livereload from 'rollup-plugin-livereload';
+import baseConfig from './rollup.base';
 
 export default {
   ...baseConfig,
@@ -10,18 +10,20 @@ export default {
     sourcemap: true,
     file: 'example/index.js',
     format: 'umd',
-    name: 'Lock'
+    name: 'Lock',
   },
   plugins: [
     ...baseConfig.plugins,
     eslint(),
-    ts(),
+    ts({
+      useTsconfigDeclarationDir: true,
+    }),
     serve({
       open: true,
       port: 8008,
       historyApiFallback: '/example.html',
-      contentBase: ['example']
+      contentBase: ['example'],
     }),
-    livereload('example')
-  ]
+    livereload('example'),
+  ],
 };

@@ -2,10 +2,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "resolveJsonModule": true,
-    "esModuleInterop": true
   },
   "include": [
     "**/*.ts",
-    "**/*.js"
-  ]
+    "**/*.js",
+    "type.d.ts"
+  ],
 }

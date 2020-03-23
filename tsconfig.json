@@ -16,7 +16,8 @@
     "outDir": "./lib",
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "declarationDir": "./types"
   },
   "include": [
     "src",

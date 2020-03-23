@@ -6,5 +6,5 @@ export default {
   plugins: [
     commonjs(),
     resolve(),
-  ]
+  ],
 };

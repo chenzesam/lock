@@ -24,6 +24,8 @@
 
 - [x] feat: onChange event;
 
+- [ ] feat: 添加测试用例, 将库变的可测试;
+
 - [x] fix: touch 事件的 clientX 和 clientY 转为相对于容器的坐标;
 
 - [x] fix: 父容器能滚动的情况下会导致坐标计算不准确;

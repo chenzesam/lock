@@ -6,6 +6,9 @@ const lock = new Lock({
     setTimeout(() => {
       if (result.join('') === '123') {
         lock.success();
+        setTimeout(() => {
+          lock.destroy();
+        }, 1000)
       } else {
         lock.error();
       }

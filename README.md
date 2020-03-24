@@ -24,28 +24,34 @@
 
 - [x] feat: onChange event;
 
-- [ ] feat: 添加测试用例, 将库变的可测试;
+- [x] feat: add destroy method;
+
+- [ ] feat: add test;
 
 - [x] fix: touch 事件的 clientX 和 clientY 转为相对于容器的坐标;
 
 - [x] fix: 父容器能滚动的情况下会导致坐标计算不准确;
 
-## Doc
+## Use
 
 ```ts
 import Lock from '@czs/lock';
-const ILockParams = {
+
+type onResult = ((result: number[]) => void) | (() => Promise<void>);
+type onChange = ((result: number[]) => void);
+
+interface Config {
   container: HTMLElement;
-  onResult: Promise | (result: number[]) => void;
-  onChange: (result: number[]) => {},
-  keyboard: [number, number]
+  keyboard: [number, number];
+  errorDuration?: number;
+  onResult?: onResult;
+  onChange?: onChange;
 }
+
 const lock = new Lock({
   container: document.querySelector('dom'),
-  onResult: result => {},
-  onChange: result => {},
   keyboard: [3, 3]
-}: ILockParams);
+}: Config);
 
 // show loading
 lock.loading(text: string);
@@ -55,6 +61,9 @@ lock.error();
 
 // show success(just close loading)
 lock.success();
+
+// unbind event and remove DOM for clear memory
+lock.destroy();
 ```
 
 ## Example

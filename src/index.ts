@@ -12,7 +12,8 @@ interface Config {
 class Lock {
   private _container: HTMLElement;
   private _errorDuration?: number;
-  private _errorTimer: NodeJS.Timeout | null;
+  private _errorTimer: number | null;
+  private _checkTimer: NodeJS.Timeout | null;
   private _keyboard: [number, number];
   private _config: Config;
   private _onResult?: onResult;
@@ -27,10 +28,14 @@ class Lock {
   private _width: number;
   private _height: number;
   private _radius: number;
+
   private _bgCanvas: HTMLCanvasElement;
   private _interactionCanvas: HTMLCanvasElement;
+  private _checkingCanvas: HTMLCanvasElement;
+
   private _bgCtx: CanvasRenderingContext2D;
   private _interactionCtx: CanvasRenderingContext2D;
+  private _checkingCtx: CanvasRenderingContext2D;
 
   constructor(config: Config) {
     this._config = Object.assign({}, {
@@ -41,6 +46,7 @@ class Lock {
     this._container = this._config.container;
     this._errorDuration = this._config.errorDuration;
     this._errorTimer = null;
+    this._checkTimer = null;
     this._keyboard = this._config.keyboard;
     this._onResult = this._config.onResult;
     this._onChange = this._config.onChange;
@@ -53,20 +59,25 @@ class Lock {
     this._container.style.position = 'relative';
     this._bgCanvas = document.createElement('canvas');
     this._interactionCanvas = document.createElement('canvas');
+    this._checkingCanvas = document.createElement('canvas');
 
     this._width = this._container.getBoundingClientRect().width;
     this._height = this._container.getBoundingClientRect().height;
-    this._bgCanvas.width = this._interactionCanvas.width = this._width;
-    this._bgCanvas.height = this._interactionCanvas.height = this._height;
+    this._checkingCanvas.width = this._bgCanvas.width = this._interactionCanvas.width = this._width;
+    this._checkingCanvas.height = this._bgCanvas.height = this._interactionCanvas.height = this._height;
 
     this._bgCanvas.style.position = 'absolute';
     this._interactionCanvas.style.position = 'absolute';
+    this._checkingCanvas.style.position = 'absolute';
+    this._checkingCanvas.style.display = 'none';
 
     this._bgCtx = this._bgCanvas.getContext('2d') as CanvasRenderingContext2D;
     this._interactionCtx = this._interactionCanvas.getContext('2d') as CanvasRenderingContext2D;
+    this._checkingCtx = this._checkingCanvas.getContext('2d') as CanvasRenderingContext2D;
 
     this._container.appendChild(this._bgCanvas);
     this._container.appendChild(this._interactionCanvas);
+    this._container.appendChild(this._checkingCanvas);
 
     this._radius = (Math.min(this._width, this._height) / Math.max(...this._keyboard)) / 3;
 
@@ -88,6 +99,7 @@ class Lock {
         this._bgCtx.beginPath();
         this._bgCtx.moveTo(circleX + this._radius, circleY);
         this._bgCtx.arc(circleX, circleY, this._radius, 0, Math.PI * 2);
+        this._bgCtx.strokeStyle = '#5b8c85';
         this._bgCtx.stroke();
         this._bgCtx.restore();
       }
@@ -222,7 +234,7 @@ class Lock {
     const callback = this._onResult && this._onResult(result);
 
     if (Object.prototype.toString.call(callback) === '[object Promise]') {
-      this.loading();
+      this.checking();
       (callback as Promise<void>).then(() => this.success()).catch(() => this.error())
     }
   }
@@ -264,25 +276,46 @@ class Lock {
     this._interactionCanvas.removeEventListener('touchmove', this._touchmove);
   }
 
-  public loading(text = 'checking...'): void {
-    this._interactionCtx.save();
-    this._interactionCtx.textAlign = 'center';
-    this._interactionCtx.font = '48px serif';
-    this._interactionCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    this._interactionCtx.fillRect(0, 0, this._width, this._height);
-    this._interactionCtx.fillStyle = 'rgba(0, 0, 0, 1)';
-    this._interactionCtx.fillText(text, this._width / 2, this._height / 2)
-    this._interactionCtx.restore()
+  public checking(): void {
+    this._checkingCtx.clearRect(0, 0, this._width, this._height);
+    this._checkingCanvas.style.display = 'block';
+
+    const drawCheckCricle = (coordinates: string[]): void => {
+      this._checkTimer = setTimeout(() => {
+        if (coordinates.length === 0) {
+          this._checkingCtx.clearRect(0, 0, this._width, this._height);
+          drawCheckCricle(this._resultCoordinates.slice());
+        } else {
+          const coordinate: string = (coordinates.shift() as string);
+          const [pointX, pointY] = coordinate.split('_');
+          this._checkingCtx.save();
+          this._checkingCtx.beginPath();
+          this._checkingCtx.strokeStyle = '#21bf73';
+          this._checkingCtx.lineWidth = 2;
+          this._checkingCtx.moveTo(+pointX + this._radius, +pointY);
+          this._checkingCtx.arc(+pointX, +pointY, this._radius, 0, Math.PI * 2);
+          this._checkingCtx.stroke();
+          this._checkingCtx.restore();
+          drawCheckCricle(coordinates);
+        }
+      }, 150)
+    }
+
+    drawCheckCricle(this._resultCoordinates.slice());
   }
 
   public error(): void {
-    this._drawInteractionNotLastLine('red');
+    this._checkingCanvas.style.display = 'none';
+    clearTimeout((this._checkTimer as NodeJS.Timeout));
+    this._drawInteractionNotLastLine('#fd5e53');
     this._errorTimer = setTimeout(() => {
       this._clearInteraction();
     }, this._errorDuration);
   }
 
   public success(): void {
+    this._checkingCanvas.style.display = 'none';
+    clearTimeout(this._checkTimer as NodeJS.Timeout);
     this._resultCoordinates = [];
     this._clearInteraction();
   }
@@ -291,6 +324,7 @@ class Lock {
     this._unbindEvent();
     this._container.removeChild(this._bgCanvas)
     this._container.removeChild(this._interactionCanvas)
+    this._container.removeChild(this._checkingCanvas)
   }
 }
 

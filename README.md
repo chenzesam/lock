@@ -18,7 +18,7 @@
 
 - [x] feat: mouse 事件改为 touch 事件;
 
-- [ ] feat: 拆分出多一层 canvas 作为 checking 交互展示;
+- [x] feat: 拆分出多一层 canvas 作为 checking 交互展示;
 
 - [x] feat: typescriptify;
 

@@ -2,7 +2,7 @@ const containers = document.querySelectorAll('.container');
 const lock = new Lock({
   container: containers[0],
   onResult: result => {
-    lock.loading();
+    lock.checking();
     setTimeout(() => {
       if (result.join('') === '123') {
         lock.success();
@@ -12,7 +12,7 @@ const lock = new Lock({
       } else {
         lock.error();
       }
-    }, 1000)
+    }, 3000)
   },
   onChange: result => {
     console.log(result)

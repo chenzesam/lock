@@ -1,35 +1,35 @@
 const containers = document.querySelectorAll('.container');
 const lock = new Lock({
   container: containers[0],
-  onResult: result => {
+  onResult: (result) => {
     lock.checking();
     setTimeout(() => {
       if (result.join('') === '123') {
         lock.success();
         setTimeout(() => {
           lock.destroy();
-        }, 1000)
+        }, 1000);
       } else {
         lock.error();
       }
-    }, 3000)
+    }, 3000);
   },
-  onChange: result => {
-    console.log(result)
+  onChange: (result) => {
+    console.log(result);
   },
-  keyboard: [4, 4]
+  keyboard: [4, 4],
 });
 
 const lock2 = new Lock({
   container: containers[1],
-  onResult: result => new Promise((resolve, reject) => {
+  onResult: (result) => new Promise((resolve, reject) => {
     setTimeout(() => {
       if (result.join('') === '123') {
-        resolve()
+        resolve();
       } else {
-        reject()
+        reject();
       }
-    }, 1000)
+    }, 1000);
   }),
-  keyboard: [3, 3]
+  keyboard: [3, 3],
 });

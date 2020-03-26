@@ -5,109 +5,133 @@ interface Config {
   container: HTMLElement;
   keyboard: [number, number];
   errorDuration?: number;
+  checkInterval?: number;
   onResult?: onResult;
   onChange?: onChange;
 }
 
 class Lock {
-  private _container: HTMLElement;
-  private _errorDuration?: number;
-  private _errorTimer: number | null;
-  private _checkTimer: NodeJS.Timeout | null;
-  private _keyboard: [number, number];
-  private _config: Config;
-  private _onResult?: onResult;
-  private _onChange?: onChange;
+  private container: HTMLElement;
+
+  private errorDuration?: number;
+
+  private checkInterval?: number;
+
+  private errorTimer: number | null;
+
+  private checkTimer: number | null;
+
+  private keyboard: [number, number];
+
+  private config: Config;
+
+  private onResult?: onResult;
+
+  private onChange?: onChange;
 
   // result collection
-  private _resultCoordinates: string[] = [];
-  private _numberMap: Record<string, number> = {};
+  private resultCoordinates: string[] = [];
 
-  // record body overflow style
-  private _bodyOldOverflow!: string;
-  private _width: number;
-  private _height: number;
-  private _radius: number;
+  private numberMap: Record<string, number> = {};
 
-  private _bgCanvas: HTMLCanvasElement;
-  private _interactionCanvas: HTMLCanvasElement;
-  private _checkingCanvas: HTMLCanvasElement;
+  private bodyOldOverflow!: string;
 
-  private _bgCtx: CanvasRenderingContext2D;
-  private _interactionCtx: CanvasRenderingContext2D;
-  private _checkingCtx: CanvasRenderingContext2D;
+  private width: number;
+
+  private height: number;
+
+  private radius: number;
+
+  private bgCanvas: HTMLCanvasElement;
+
+  private interactionCanvas: HTMLCanvasElement;
+
+  private checkingCanvas: HTMLCanvasElement;
+
+  private bgCtx: CanvasRenderingContext2D;
+
+  private interactionCtx: CanvasRenderingContext2D;
+
+  private checkingCtx: CanvasRenderingContext2D;
 
   constructor(config: Config) {
-    this._config = Object.assign({}, {
+    this.config = {
       keyboard: [3, 3],
       errorDuration: 2000,
-    }, config);
+      checkInterval: 150,
+      ...config,
+    };
 
-    this._container = this._config.container;
-    this._errorDuration = this._config.errorDuration;
-    this._errorTimer = null;
-    this._checkTimer = null;
-    this._keyboard = this._config.keyboard;
-    this._onResult = this._config.onResult;
-    this._onChange = this._config.onChange;
+    this.container = this.config.container;
+    this.errorDuration = this.config.errorDuration;
+    this.checkInterval = this.config.checkInterval;
+    this.errorTimer = null;
+    this.checkTimer = null;
+    this.keyboard = this.config.keyboard;
+    this.onResult = this.config.onResult;
+    this.onChange = this.config.onChange;
 
-    this._touchstart = this._touchstart.bind(this);
-    this._touchend = this._touchend.bind(this);
-    this._touchmove = this._touchmove.bind(this);
+    this.touchstart = this.touchstart.bind(this);
+    this.touchend = this.touchend.bind(this);
+    this.touchmove = this.touchmove.bind(this);
 
     // init
-    this._container.style.position = 'relative';
-    this._bgCanvas = document.createElement('canvas');
-    this._interactionCanvas = document.createElement('canvas');
-    this._checkingCanvas = document.createElement('canvas');
+    this.container.style.position = 'relative';
+    this.bgCanvas = document.createElement('canvas');
+    this.interactionCanvas = document.createElement('canvas');
+    this.checkingCanvas = document.createElement('canvas');
 
-    this._width = this._container.getBoundingClientRect().width;
-    this._height = this._container.getBoundingClientRect().height;
-    this._checkingCanvas.width = this._bgCanvas.width = this._interactionCanvas.width = this._width;
-    this._checkingCanvas.height = this._bgCanvas.height = this._interactionCanvas.height = this._height;
+    this.width = this.container.getBoundingClientRect().width;
+    this.height = this.container.getBoundingClientRect().height;
+    this.checkingCanvas.width = this.width;
+    this.bgCanvas.width = this.width;
+    this.interactionCanvas.width = this.width;
+    this.checkingCanvas.height = this.height;
+    this.bgCanvas.height = this.height;
+    this.interactionCanvas.height = this.height;
 
-    this._bgCanvas.style.position = 'absolute';
-    this._interactionCanvas.style.position = 'absolute';
-    this._checkingCanvas.style.position = 'absolute';
-    this._checkingCanvas.style.display = 'none';
+    this.bgCanvas.style.position = 'absolute';
+    this.interactionCanvas.style.position = 'absolute';
+    this.checkingCanvas.style.position = 'absolute';
+    this.checkingCanvas.style.display = 'none';
 
-    this._bgCtx = this._bgCanvas.getContext('2d') as CanvasRenderingContext2D;
-    this._interactionCtx = this._interactionCanvas.getContext('2d') as CanvasRenderingContext2D;
-    this._checkingCtx = this._checkingCanvas.getContext('2d') as CanvasRenderingContext2D;
+    this.bgCtx = this.bgCanvas.getContext('2d') as CanvasRenderingContext2D;
+    this.interactionCtx = this.interactionCanvas.getContext('2d') as CanvasRenderingContext2D;
+    this.checkingCtx = this.checkingCanvas.getContext('2d') as CanvasRenderingContext2D;
 
-    this._container.appendChild(this._bgCanvas);
-    this._container.appendChild(this._interactionCanvas);
-    this._container.appendChild(this._checkingCanvas);
+    this.container.appendChild(this.bgCanvas);
+    this.container.appendChild(this.interactionCanvas);
+    this.container.appendChild(this.checkingCanvas);
 
-    this._radius = (Math.min(this._width, this._height) / Math.max(...this._keyboard)) / 3;
+    this.radius = (Math.min(this.width, this.height) / Math.max(...this.keyboard)) / 3;
 
-    this._drawBg();
-    this._bindEvent();
+    this.drawBg();
+    this.bindEvent();
   }
 
-  private _drawBg(): void {
-    const [rows, cols] = this._keyboard;
-    const rowOffset = this._width / (rows + 1);
-    const colOffset = this._height / (cols + 1);
-    for (let col = 0; col < cols; col++) {
-      for (let row = rows; row > 0; row--) {
+  private drawBg(): void {
+    const [rows, cols] = this.keyboard;
+    const rowOffset = this.width / (rows + 1);
+    const colOffset = this.height / (cols + 1);
+    for (let col = 0; col < cols; col += 1) {
+      for (let row = rows; row > 0; row -= 1) {
         const circleX = rowOffset * row;
         const circleY = colOffset * (col + 1);
         // 从上往下, 从右往左, 递减的绘制圆
-        this._numberMap[`${circleX}_${circleY}`] = (cols - col) * rows - (rows - row);
-        this._bgCtx.save();
-        this._bgCtx.beginPath();
-        this._bgCtx.moveTo(circleX + this._radius, circleY);
-        this._bgCtx.arc(circleX, circleY, this._radius, 0, Math.PI * 2);
-        this._bgCtx.strokeStyle = '#5b8c85';
-        this._bgCtx.stroke();
-        this._bgCtx.restore();
+        this.numberMap[`${circleX}_${circleY}`] = (cols - col) * rows - (rows - row);
+        this.bgCtx.save();
+        this.bgCtx.beginPath();
+        this.bgCtx.moveTo(circleX + this.radius, circleY);
+        this.bgCtx.arc(circleX, circleY, this.radius, 0, Math.PI * 2);
+        this.bgCtx.strokeStyle = '#5b8c85';
+        this.bgCtx.stroke();
+        this.bgCtx.restore();
       }
     }
   }
 
   // calculate the coordinate of the hand relative to then container
-  private _calculateRelativeCoordinate(clientX: number, clientY: number): {
+  private calculateRelativeCoordinate(clientX: number, clientY: number): {
     relativeX: number;
     relativeY: number;
   } {
@@ -115,218 +139,217 @@ class Lock {
     let relativeY = 0;
 
     if (clientX && clientY) {
-      const { x: containerX, y: containerY } = this._container.getBoundingClientRect();
+      const { x: containerX, y: containerY } = this.container.getBoundingClientRect();
       relativeX = clientX - containerX;
       relativeY = clientY - containerY;
     }
     return {
       relativeX,
-      relativeY
-    }
+      relativeY,
+    };
   }
 
-  private _clearInteraction(): void {
-    this._interactionCtx.clearRect(0, 0, this._width, this._height);
+  private clearInteraction(): void {
+    this.interactionCtx.clearRect(0, 0, this.width, this.height);
   }
 
-  private _drawInteraction(clientX: number, clientY: number, color = 'black'): void {
-
+  private drawInteraction(clientX: number, clientY: number, color = 'black'): void {
     const {
-      relativeX, relativeY
-    } = this._calculateRelativeCoordinate(clientX, clientY);
+      relativeX, relativeY,
+    } = this.calculateRelativeCoordinate(clientX, clientY);
 
-    this._calculateResult(relativeX, relativeY);
+    this.calculateResult(relativeX, relativeY);
 
-    this._drawInteractionNotLastLine(color);
-    this._drawInteractionLastLine(relativeX, relativeY);
+    this.drawInteractionNotLastLine(color);
+    this.drawInteractionLastLine(relativeX, relativeY);
   }
 
-  private _calculateResult(relativeX: number, relativeY: number): void {
-    const [rows, cols] = this._keyboard;
-    const width = this._width;
-    const height = this._height;
+  private calculateResult(relativeX: number, relativeY: number): void {
+    const [rows, cols] = this.keyboard;
+    const { width } = this;
+    const { height } = this;
     const rowOffset = width / (rows + 1);
     const colOffset = height / (cols + 1);
 
     // calculate whether the hand is in the circle
-    for (let col = 0; col < cols; col++) {
-      for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col += 1) {
+      for (let row = 0; row < rows; row += 1) {
         const circleX = rowOffset * (row + 1);
         const circleY = colOffset * (col + 1);
-        const isInCircle = Math.sqrt(Math.pow(relativeX - circleX, 2) + Math.pow(relativeY - circleY, 2)) - this._radius < 0;
-        if (isInCircle && !this._resultCoordinates.includes(`${circleX}_${circleY}`)) {
-          this._resultCoordinates.push(`${circleX}_${circleY}`);
+        const isInCircle = Math.sqrt((relativeX - circleX) ** 2 + (relativeY - circleY) ** 2)
+          - this.radius < 0;
 
-          if (this._onChange) {
-            const result = this._resultCoordinates.map(coordinate => {
+        if (isInCircle && !this.resultCoordinates.includes(`${circleX}_${circleY}`)) {
+          this.resultCoordinates.push(`${circleX}_${circleY}`);
+          if (this.onChange) {
+            const result = this.resultCoordinates.map((coordinate) => {
               const [x, y] = coordinate.split('_');
-              return this._numberMap[`${x}_${y}`];
+              return this.numberMap[`${x}_${y}`];
             });
-            this._onChange(result);
+            this.onChange(result);
           }
         }
       }
     }
   }
 
-  private _drawInteractionNotLastLine(color = 'black'): void {
-    this._clearInteraction();
-    this._drawInteractionCircle(color);
-    this._drawInteractionConnectingLine(color);
+  private drawInteractionNotLastLine(color = 'black'): void {
+    this.clearInteraction();
+    this.drawInteractionCircle(color);
+    this.drawInteractionConnectingLine(color);
   }
 
-  private _drawInteractionCircle(fillStyle = 'black'): void {
-    this._resultCoordinates.forEach(coordinate => {
+  private drawInteractionCircle(fillStyle = 'black'): void {
+    this.resultCoordinates.forEach((coordinate) => {
       const [pointX, pointY] = coordinate.split('_');
-      this._interactionCtx.save();
-      this._interactionCtx.beginPath();
-      this._interactionCtx.moveTo(+pointX + this._radius / 2, +pointY);
-      this._interactionCtx.fillStyle = fillStyle;
-      this._interactionCtx.arc(+pointX, +pointY, this._radius / 3, 0, Math.PI * 2);
-      this._interactionCtx.fill();
-      this._interactionCtx.restore();
+      this.interactionCtx.save();
+      this.interactionCtx.beginPath();
+      this.interactionCtx.moveTo(+pointX + this.radius / 2, +pointY);
+      this.interactionCtx.fillStyle = fillStyle;
+      this.interactionCtx.arc(+pointX, +pointY, this.radius / 3, 0, Math.PI * 2);
+      this.interactionCtx.fill();
+      this.interactionCtx.restore();
     });
   }
 
-  private _drawInteractionConnectingLine(strokeStyle = 'black'): void {
-    if (this._resultCoordinates.length === 0) {
-      return
+  private drawInteractionConnectingLine(strokeStyle = 'black'): void {
+    if (this.resultCoordinates.length === 0) {
+      return;
     }
-    const [pointX, pointY] = this._resultCoordinates[0].split('_');
-    this._interactionCtx.save();
-    this._interactionCtx.beginPath();
-    this._interactionCtx.moveTo(+pointX, +pointY);
-    this._resultCoordinates.forEach((coordinate, index) => {
+    const [firstPointX, firstPointY] = this.resultCoordinates[0].split('_');
+    this.interactionCtx.save();
+    this.interactionCtx.beginPath();
+    this.interactionCtx.moveTo(+firstPointX, +firstPointY);
+    this.resultCoordinates.forEach((coordinate, index) => {
       if (index === 0) {
         return;
       }
       const [pointX, pointY] = coordinate.split('_');
-      this._interactionCtx.lineTo(+pointX, +pointY);
+      this.interactionCtx.lineTo(+pointX, +pointY);
     });
-    this._interactionCtx.strokeStyle = strokeStyle;
-    this._interactionCtx.stroke();
-    this._interactionCtx.restore();
+    this.interactionCtx.strokeStyle = strokeStyle;
+    this.interactionCtx.stroke();
+    this.interactionCtx.restore();
   }
 
-  private _drawInteractionLastLine(relativeX: number, relativeY: number): void {
-    if (this._resultCoordinates.length > 0) {
-      const [lastPointX, lastPointY] = this._resultCoordinates[this._resultCoordinates.length - 1].split('_');
-      this._interactionCtx.save();
-      this._interactionCtx.beginPath();
-      this._interactionCtx.moveTo(+lastPointX, +lastPointY);
-      this._interactionCtx.lineTo(relativeX, relativeY);
-      this._interactionCtx.strokeStyle = 'black';
-      this._interactionCtx.stroke();
-      this._interactionCtx.restore();
+  private drawInteractionLastLine(relativeX: number, relativeY: number): void {
+    if (this.resultCoordinates.length > 0) {
+      const [lastPointX, lastPointY] = this.resultCoordinates[this.resultCoordinates.length - 1].split('_');
+      this.interactionCtx.save();
+      this.interactionCtx.beginPath();
+      this.interactionCtx.moveTo(+lastPointX, +lastPointY);
+      this.interactionCtx.lineTo(relativeX, relativeY);
+      this.interactionCtx.strokeStyle = 'black';
+      this.interactionCtx.stroke();
+      this.interactionCtx.restore();
     }
   }
 
-  private _feedback(): void {
-
-    const result = this._resultCoordinates.map(coordinate => {
+  private feedback(): void {
+    const result = this.resultCoordinates.map((coordinate) => {
       const [x, y] = coordinate.split('_');
-      return this._numberMap[`${x}_${y}`];
+      return this.numberMap[`${x}_${y}`];
     });
 
-    this._interactionCanvas.removeEventListener('touchmove', this._touchmove);
-    this._drawInteractionNotLastLine();
+    this.interactionCanvas.removeEventListener('touchmove', this.touchmove);
+    this.drawInteractionNotLastLine();
 
-    const callback = this._onResult && this._onResult(result);
+    const callback = this.onResult && this.onResult(result);
 
     if (Object.prototype.toString.call(callback) === '[object Promise]') {
       this.checking();
-      (callback as Promise<void>).then(() => this.success()).catch(() => this.error())
+      (callback as Promise<void>).then(() => this.success()).catch(() => this.error());
     }
   }
 
-  private _bindEvent(): void {
-    this._interactionCanvas.addEventListener('touchstart', this._touchstart)
-    this._interactionCanvas.addEventListener('touchend', this._touchend)
+  private bindEvent(): void {
+    this.interactionCanvas.addEventListener('touchstart', this.touchstart);
+    this.interactionCanvas.addEventListener('touchend', this.touchend);
   }
 
-  private _unbindEvent(): void {
-    this._interactionCanvas.removeEventListener('touchstart', this._touchstart)
-    this._interactionCanvas.removeEventListener('touchend', this._touchend)
+  private unbindEvent(): void {
+    this.interactionCanvas.removeEventListener('touchstart', this.touchstart);
+    this.interactionCanvas.removeEventListener('touchend', this.touchend);
   }
 
-  private _touchstart(e: TouchEvent): void {
+  private touchstart(e: TouchEvent): void {
     // make it impossible to scroll while moving
-    this._bodyOldOverflow = document.body.style.overflow;
+    this.bodyOldOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    this._resultCoordinates = [];
+    this.resultCoordinates = [];
+
+    if (this.errorTimer) clearTimeout(this.errorTimer);
+
     const { clientX, clientY } = e.touches[0];
-    if (this._errorTimer) {
-      clearTimeout(this._errorTimer);
-    }
-    this._drawInteraction(clientX, clientY);
-    this._interactionCanvas.addEventListener('touchmove', this._touchmove);
+    this.drawInteraction(clientX, clientY);
+
+    this.interactionCanvas.addEventListener('touchmove', this.touchmove);
   }
 
-  private _touchmove(e: TouchEvent): void {
+  private touchmove(e: TouchEvent): void {
     const { clientX, clientY } = e.touches[0];
-    this._drawInteraction(clientX, clientY);
+    this.drawInteraction(clientX, clientY);
   }
 
-  private _touchend(): void {
-    document.body.style.overflow = this._bodyOldOverflow;
-    if (this._resultCoordinates.length > 0) {
-      this._feedback();
+  private touchend(): void {
+    document.body.style.overflow = this.bodyOldOverflow;
+    if (this.resultCoordinates.length > 0) {
+      this.feedback();
     }
-    this._interactionCanvas.removeEventListener('touchmove', this._touchmove);
+    this.interactionCanvas.removeEventListener('touchmove', this.touchmove);
   }
 
   public checking(): void {
-    this._checkingCtx.clearRect(0, 0, this._width, this._height);
-    this._checkingCanvas.style.display = 'block';
+    this.checkingCtx.clearRect(0, 0, this.width, this.height);
+    this.checkingCanvas.style.display = 'block';
 
     const drawCheckCricle = (coordinates: string[]): void => {
-      this._checkTimer = setTimeout(() => {
+      this.checkTimer = setTimeout(() => {
         if (coordinates.length === 0) {
-          this._checkingCtx.clearRect(0, 0, this._width, this._height);
-          drawCheckCricle(this._resultCoordinates.slice());
+          this.checkingCtx.clearRect(0, 0, this.width, this.height);
+          drawCheckCricle(this.resultCoordinates.slice());
         } else {
           const coordinate: string = (coordinates.shift() as string);
           const [pointX, pointY] = coordinate.split('_');
-          this._checkingCtx.save();
-          this._checkingCtx.beginPath();
-          this._checkingCtx.strokeStyle = '#21bf73';
-          this._checkingCtx.lineWidth = 2;
-          this._checkingCtx.moveTo(+pointX + this._radius, +pointY);
-          this._checkingCtx.arc(+pointX, +pointY, this._radius, 0, Math.PI * 2);
-          this._checkingCtx.stroke();
-          this._checkingCtx.restore();
+          this.checkingCtx.save();
+          this.checkingCtx.beginPath();
+          this.checkingCtx.strokeStyle = '#21bf73';
+          this.checkingCtx.lineWidth = 2;
+          this.checkingCtx.moveTo(+pointX + this.radius, +pointY);
+          this.checkingCtx.arc(+pointX, +pointY, this.radius, 0, Math.PI * 2);
+          this.checkingCtx.stroke();
+          this.checkingCtx.restore();
           drawCheckCricle(coordinates);
         }
-      }, 150)
-    }
+      }, this.checkInterval);
+    };
 
-    drawCheckCricle(this._resultCoordinates.slice());
+    drawCheckCricle(this.resultCoordinates.slice());
   }
 
   public error(): void {
-    this._checkingCanvas.style.display = 'none';
-    clearTimeout((this._checkTimer as NodeJS.Timeout));
-    this._drawInteractionNotLastLine('#fd5e53');
-    this._errorTimer = setTimeout(() => {
-      this._clearInteraction();
-    }, this._errorDuration);
+    this.checkingCanvas.style.display = 'none';
+    if (this.checkTimer) clearTimeout(this.checkTimer);
+    this.drawInteractionNotLastLine('#fd5e53');
+    this.errorTimer = setTimeout(() => {
+      this.clearInteraction();
+    }, this.errorDuration);
   }
 
   public success(): void {
-    this._checkingCanvas.style.display = 'none';
-    clearTimeout(this._checkTimer as NodeJS.Timeout);
-    this._resultCoordinates = [];
-    this._clearInteraction();
+    this.checkingCanvas.style.display = 'none';
+    if (this.checkTimer) clearTimeout(this.checkTimer);
+    this.resultCoordinates = [];
+    this.clearInteraction();
   }
 
   public destroy(): void {
-    this._unbindEvent();
-    this._container.removeChild(this._bgCanvas)
-    this._container.removeChild(this._interactionCanvas)
-    this._container.removeChild(this._checkingCanvas)
+    this.unbindEvent();
+    this.container.removeChild(this.bgCanvas);
+    this.container.removeChild(this.interactionCanvas);
+    this.container.removeChild(this.checkingCanvas);
   }
 }
 
 export default Lock;
-

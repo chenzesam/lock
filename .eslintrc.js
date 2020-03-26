@@ -3,6 +3,7 @@ const eslintrc = {
   extends: [
       'eslint:recommended',
       'plugin:@typescript-eslint/recommended',
+      'airbnb-typescript/base'
   ],
   plugins: [
       '@typescript-eslint',
@@ -20,7 +21,10 @@ const eslintrc = {
         experimentalObjectRestSpread: true
       }
   },
-  rules: {},
+  globals: {
+    test: true,
+    expect: true
+  }
 }
 
 module.exports = eslintrc

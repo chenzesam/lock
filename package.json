@@ -1,6 +1,6 @@
 {
   "name": "@chenzesam/lock",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "canvas-based mobile gesture unlock library",
   "main": "dist/index.common.js",
   "browser": "dist/index.browser.js",

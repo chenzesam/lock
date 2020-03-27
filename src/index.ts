@@ -2,7 +2,7 @@ type onResult = ((result: number[]) => void) | (() => Promise<void>);
 type onChange = ((result: number[]) => void);
 type Keyboard = [number, number];
 
-interface Params {
+interface Options {
   container: HTMLElement;
   keyboard?: Keyboard;
   errorDuration?: number;
@@ -11,7 +11,7 @@ interface Params {
   onChange?: onChange;
 }
 
-interface DefaultConfig extends Params {
+interface DefaultConfig extends Options {
   keyboard: Keyboard;
   errorDuration: number;
   checkInterval: number;
@@ -61,12 +61,12 @@ class Lock {
 
   private checkingCtx: CanvasRenderingContext2D;
 
-  constructor(params: Params) {
+  constructor(options: Options) {
     this.config = {
       keyboard: [3, 3],
       errorDuration: 2000,
       checkInterval: 150,
-      ...params,
+      ...options,
     };
 
     this.container = this.config.container;

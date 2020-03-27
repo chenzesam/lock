@@ -8,9 +8,9 @@
   "scripts": {
     "test": "jest --coverage=true",
     "commit": "git-cz",
-    "prebuild": "rimraf dist",
-    "build": "rimraf dist && cross-env NODE_ENV=production rollup -c ./configs/rollup.pro.js",
-    "start": "cross-env NODE_ENV=development rollup --watch -c ./configs/rollup.dev.js"
+    "clean": "rimraf dist && rimraf types",
+    "build": "npm run clean && cross-env NODE_ENV=production rollup -c ./configs/rollup.pro.js",
+    "start": "npm run clean && cross-env NODE_ENV=development rollup --watch -c ./configs/rollup.base.js"
   },
   "keywords": [
     "canvas",
@@ -39,9 +39,6 @@
     "jest": "^25.1.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.0.4",
-    "rollup-plugin-eslint": "^7.0.0",
-    "rollup-plugin-livereload": "^1.0.4",
-    "rollup-plugin-serve": "^1.0.1",
     "rollup-plugin-sizes": "^1.0.2",
     "rollup-plugin-terser": "^5.3.0",
     "rollup-plugin-typescript2": "^0.26.0",
@@ -49,7 +46,9 @@
     "tslib": "^1.11.1",
     "typescript": "^3.8.3"
   },
-  "dependencies": {},
+  "dependencies": {
+    "rollup-plugin-peer-deps-external": "^2.2.2"
+  },
   "config": {
     "commitizen": {
       "path": "node_modules/cz-conventional-changelog"

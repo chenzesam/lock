@@ -12,4 +12,6 @@ yarn-error.log*
 # production
 dist
 types
+configs
 example
+jest.config.js

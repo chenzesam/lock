@@ -20,7 +20,7 @@ configs
 jest.config.js
 
 /tsconfig.*
-/type.d.ts
+/typing.d.ts
 
 # source code
 src

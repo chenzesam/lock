@@ -1,33 +1,40 @@
 type onResult = ((result: number[]) => void) | (() => Promise<void>);
 type onChange = ((result: number[]) => void);
+type Keyboard = [number, number];
 
-interface Config {
+interface Params {
   container: HTMLElement;
-  keyboard: [number, number];
+  keyboard?: Keyboard;
   errorDuration?: number;
   checkInterval?: number;
   onResult?: onResult;
   onChange?: onChange;
 }
 
+interface DefaultConfig extends Params {
+  keyboard: Keyboard;
+  errorDuration: number;
+  checkInterval: number;
+}
+
 class Lock {
+  private config: DefaultConfig;
+
   private container: HTMLElement;
 
-  private errorDuration?: number;
+  private errorDuration: number;
 
-  private checkInterval?: number;
+  private checkInterval: number;
 
-  private errorTimer: number | null;
-
-  private checkTimer: number | null;
-
-  private keyboard: [number, number];
-
-  private config: Config;
+  private keyboard: Keyboard;
 
   private onResult?: onResult;
 
   private onChange?: onChange;
+
+  private errorTimer: NodeJS.Timeout | null;
+
+  private checkTimer: NodeJS.Timeout | null;
 
   // result collection
   private resultCoordinates: string[] = [];
@@ -54,22 +61,23 @@ class Lock {
 
   private checkingCtx: CanvasRenderingContext2D;
 
-  constructor(config: Config) {
+  constructor(params: Params) {
     this.config = {
       keyboard: [3, 3],
       errorDuration: 2000,
       checkInterval: 150,
-      ...config,
+      ...params,
     };
 
     this.container = this.config.container;
+    this.keyboard = this.config.keyboard;
     this.errorDuration = this.config.errorDuration;
     this.checkInterval = this.config.checkInterval;
-    this.errorTimer = null;
-    this.checkTimer = null;
-    this.keyboard = this.config.keyboard;
     this.onResult = this.config.onResult;
     this.onChange = this.config.onChange;
+
+    this.errorTimer = null;
+    this.checkTimer = null;
 
     this.touchstart = this.touchstart.bind(this);
     this.touchend = this.touchend.bind(this);

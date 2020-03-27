@@ -1,11 +1,11 @@
-# 手势解锁库
+# lock
 
 The mobile gesture unlock library, based on canvas.
 
 ## Simple Use
 
 ```ts
-import Lock from '@czs/lock';
+import Lock from '@chenzesam/lock';
 
 const lock = new Lock({
   container: document.querySelector('class'),
@@ -18,7 +18,7 @@ const lock = new Lock({
 ## Options
 
 * `container` HTMLElement: the container for place canvas.
-* `keyboard` [number, number] (*optional*): the gesture keyboard(default [3, 3]).
+* `keyboard` [number, number] \(*optional*): the gesture keyboard(default [3, 3]).
 * `onResult` ((result: number[]) => (Promise | void)) (*optional*): will callback when the user complete operation(default null).
 * `onChange` ((result: number[]) => void) (*optional*): will callback when the user touchmove new circle(default null).
 * `errorDuration` number (*optional*): time(ms) of error presentation(default 2000).

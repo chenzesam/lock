@@ -17,6 +17,7 @@ configs
 .eslintignore
 .eslintrc.js
 .gitignore
+.commitlintrc.js
 jest.config.js
 
 /tsconfig.*
@@ -25,3 +26,4 @@ jest.config.js
 # source code
 src
 example
+doc

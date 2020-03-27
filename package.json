@@ -1,5 +1,5 @@
 {
-  "name": "lock",
+  "name": "@chenzesam/lock",
   "version": "0.0.1",
   "description": "canvas-based mobile gesture unlock library",
   "main": "dist/index.common.js",
@@ -58,5 +58,17 @@
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
-  }
+  },
+  "directories": {
+    "doc": "docs",
+    "example": "example"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chenzesam/lock.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chenzesam/lock/issues"
+  },
+  "homepage": "https://github.com/chenzesam/lock#readme"
 }

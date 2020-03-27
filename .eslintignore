@@ -12,6 +12,9 @@ yarn-error.log*
 # production
 dist
 types
+
+# others
 configs
 example
 jest.config.js
+.commitlintrc.js

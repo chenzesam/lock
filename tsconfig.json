@@ -19,6 +19,6 @@
     "declarationDir": "./types"
   },
   "include": [
-    "src",
+    "src"
   ]
 }

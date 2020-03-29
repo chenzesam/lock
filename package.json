@@ -6,6 +6,7 @@
   "browser": "dist/index.browser.js",
   "module": "dist/index.esm.js",
   "scripts": {
+    "install-peer": "npm-install-peers",
     "test": "jest --coverage=true",
     "commit": "git-cz",
     "clean": "rimraf dist && rimraf types",
@@ -37,6 +38,7 @@
     "eslint-plugin-import": "^2.20.1",
     "husky": "^4.2.3",
     "jest": "^25.1.0",
+    "npm-install-peers": "^1.2.1",
     "rimraf": "^3.0.2",
     "rollup": "^2.0.4",
     "rollup-plugin-sizes": "^1.0.2",

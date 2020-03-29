@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "resolveJsonModule": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src",
     "__tests__",
     "./typing.d.ts"
-  ],
+  ]
 }

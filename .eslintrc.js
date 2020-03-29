@@ -23,6 +23,6 @@ const eslintrc = {
   rules: {
     "import/no-extraneous-dependencies": 0
   }
-}
+};
 
-module.exports = eslintrc
+module.exports = eslintrc;

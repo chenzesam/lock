@@ -5,6 +5,6 @@ declare module '*.json' {
   export {
     module,
     browser,
-    main
+    main,
   };
 }

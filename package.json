@@ -1,11 +1,12 @@
 {
   "name": "@chenzesam/lock",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "canvas-based mobile gesture unlock library",
   "main": "dist/index.common.js",
   "browser": "dist/index.browser.js",
   "module": "dist/index.esm.js",
   "scripts": {
+    "install-peer": "npm-install-peers",
     "test": "jest --coverage=true",
     "commit": "git-cz",
     "clean": "rimraf dist && rimraf types",
@@ -37,6 +38,7 @@
     "eslint-plugin-import": "^2.20.1",
     "husky": "^4.2.3",
     "jest": "^25.1.0",
+    "npm-install-peers": "^1.2.1",
     "rimraf": "^3.0.2",
     "rollup": "^2.0.4",
     "rollup-plugin-sizes": "^1.0.2",
@@ -58,5 +60,17 @@
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
-  }
+  },
+  "directories": {
+    "doc": "docs",
+    "example": "example"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chenzesam/lock.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chenzesam/lock/issues"
+  },
+  "homepage": "https://github.com/chenzesam/lock#readme"
 }

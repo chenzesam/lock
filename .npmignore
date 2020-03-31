@@ -8,6 +8,7 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 .cache
+.idea
 
 # test
 __tests__
@@ -17,11 +18,13 @@ configs
 .eslintignore
 .eslintrc.js
 .gitignore
+.commitlintrc.js
 jest.config.js
 
 /tsconfig.*
-/type.d.ts
+/typing.d.ts
 
 # source code
 src
 example
+doc

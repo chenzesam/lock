@@ -13,13 +13,12 @@
     "noImplicitAny": false,
 
     "baseUrl": ".",
-    "outDir": "./lib",
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "declarationDir": "./types"
   },
   "include": [
-    "src",
+    "src"
   ]
 }

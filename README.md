@@ -1,14 +1,14 @@
-# 手势解锁库
+# lock
 
 The mobile gesture unlock library, based on canvas.
 
-## Simple Use
+## Sample
 
 ```ts
-import Lock from '@czs/lock';
+import Lock from "@chenzesam/lock";
 
 const lock = new Lock({
-  container: document.querySelector('class'),
+  container: document.querySelector("your-dom"),
   keyboard: [3, 3]
 });
 ```
